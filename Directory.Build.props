@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Ajustes que comparten todos los proyectos del monorepo. Ponerlos aquí y no
+    en cada .csproj es lo que evita que dentro de seis meses un servicio tenga
+    nullable apagado y otro encendido.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!--
+      Los avisos son errores. En un monorepo con diez servicios, un aviso que
+      nadie mira se multiplica por diez y deja de verse.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,69 @@
+# Entorno de desarrollo completo con un solo comando.
+#
+#   cp .env.example .env   &&   docker compose up -d
+#
+# Un Postgres con una base por servicio y un RabbitMQ. Los servicios se
+# levantan con el perfil "servicios" para poder trabajar solo con la
+# infraestructura mientras se depura desde el IDE:
+#
+#   docker compose up -d                      # solo Postgres y RabbitMQ
+#   docker compose --profile servicios up -d  # además, los microservicios
+
+name: hub-negocios
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Solo se ejecuta la primera vez, con el volumen vacío. Si cambias este
+      # archivo después, hay que borrar el volumen para que vuelva a correr.
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-hub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?define RABBITMQ_PASSWORD en .env}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  tenant-service:
+    profiles: ["servicios"]
+    build:
+      context: .
+      dockerfile: services/TenantService/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # El servicio se conecta como hub_app, NO como dueño de las tablas: si se
+      # conectara como dueño, Postgres le saltaría las políticas RLS y el
+      # aislamiento entre tenants dejaría de existir sin que nada lo avisara.
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=tenant_db;Username=${POSTGRES_APP_USER:-hub_app};Password=${POSTGRES_APP_PASSWORD:?define POSTGRES_APP_PASSWORD en .env}"
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?define JWT_SIGNING_KEY en .env}
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
