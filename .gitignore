@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+artifacts/
+TestResults/
+
+# Secretos y configuración local — nunca al repo (ver ExplicacionTec.md 8.3)
+.env
+.env.*
+!.env.example
+appsettings.Development.local.json
+*.pem
+*.key
+*.pfx
+
+# Herramientas
+.vs/
+.vscode/
+.idea/
