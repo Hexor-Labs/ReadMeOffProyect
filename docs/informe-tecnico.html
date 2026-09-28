@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hub de Negocios Multi-Tenant — Informe técnico</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-center { content: counter(page); }
+  }
+
+  :root {
+    --tinta: #16161d;
+    --suave: #5a5a6b;
+    --tenue: #8b8b9c;
+    --linea: #d8d8e0;
+    --acento: #5b3ad4;
+    --alerta: #b4232a;
+    --ok: #1c6b45;
+    --fondo-caja: #f6f6fa;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", -apple-system, system-ui, sans-serif;
+    font-size: 10pt;
+    line-height: 1.55;
+    color: var(--tinta);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1, h2, h3, h4 { line-height: 1.2; margin: 0; font-weight: 600; }
+
+  h1 { font-size: 26pt; letter-spacing: -0.02em; }
+  h2 {
+    font-size: 15pt;
+    margin: 26pt 0 10pt;
+    padding-bottom: 5pt;
+    border-bottom: 2px solid var(--tinta);
+    break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt;
+    margin: 16pt 0 5pt;
+    break-after: avoid;
+  }
+  h4 {
+    font-size: 10pt;
+    margin: 11pt 0 3pt;
+    color: var(--suave);
+    break-after: avoid;
+  }
+
+  p { margin: 0 0 8pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 16pt; }
+  li { margin-bottom: 3pt; }
+
+  code {
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 8.7pt;
+    background: var(--fondo-caja);
+    padding: 0.5pt 3pt;
+    border-radius: 2px;
+  }
+
+  pre {
+    font-family: "Cascadia Mono", Consolas, monospace;
+    font-size: 8.3pt;
+    line-height: 1.45;
+    background: var(--fondo-caja);
+    border-left: 3px solid var(--acento);
+    padding: 8pt 10pt;
+    margin: 8pt 0;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8pt 0 12pt;
+    font-size: 9pt;
+    break-inside: avoid;
+  }
+  th {
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1.5px solid var(--tinta);
+    padding: 5pt 7pt 5pt 0;
+    vertical-align: bottom;
+  }
+  td {
+    padding: 5pt 7pt 5pt 0;
+    border-bottom: 1px solid var(--linea);
+    vertical-align: top;
+  }
+  td:last-child, th:last-child { padding-right: 0; }
+
+  /* --- Portada --- */
+  .portada {
+    break-after: page;
+    padding-top: 30mm;
+  }
+  .etiqueta {
+    font-size: 8pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    font-weight: 600;
+  }
+  .portada h1 { margin: 10pt 0 6pt; }
+  .subtitulo { font-size: 13pt; color: var(--suave); margin-bottom: 26pt; }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14pt;
+    margin: 22pt 0;
+    padding: 14pt 0;
+    border-top: 1px solid var(--linea);
+    border-bottom: 1px solid var(--linea);
+  }
+  .meta .cifra { font-size: 19pt; font-weight: 600; letter-spacing: -0.02em; }
+  .meta .pie { font-size: 8pt; color: var(--tenue); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .lectores { margin-top: 20pt; }
+  .lector {
+    display: grid;
+    grid-template-columns: 42mm 1fr;
+    gap: 10pt;
+    padding: 7pt 0;
+    border-bottom: 1px solid var(--linea);
+    font-size: 9.5pt;
+  }
+  .lector b { color: var(--acento); }
+
+  /* --- Avisos --- */
+  .aviso {
+    border: 1px solid var(--alerta);
+    border-left-width: 4px;
+    background: #fdf5f5;
+    padding: 9pt 11pt;
+    margin: 11pt 0;
+    break-inside: avoid;
+  }
+  .aviso .titulo {
+    font-weight: 600;
+    color: var(--alerta);
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4pt;
+  }
+  .nota {
+    border-left: 3px solid var(--acento);
+    background: var(--fondo-caja);
+    padding: 8pt 11pt;
+    margin: 10pt 0;
+    break-inside: avoid;
+  }
+  .nota .titulo {
+    font-weight: 600;
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--acento);
+    margin-bottom: 4pt;
+  }
+
+  .si { color: var(--ok); font-weight: 600; }
+  .no { color: var(--alerta); font-weight: 600; }
+  .parcial { color: #9a6b00; font-weight: 600; }
+
+  .seccion { break-before: page; }
+  svg { display: block; margin: 12pt auto; }
+  figcaption {
+    font-size: 8.3pt;
+    color: var(--tenue);
+    text-align: center;
+    margin-top: -4pt;
+    margin-bottom: 12pt;
+  }
+  figure { margin: 0; break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PORTADA ══════════════ -->
+<section class="portada">
+  <div class="etiqueta">Informe técnico · Hexor Labs</div>
+  <h1>Hub de Negocios Multi-Tenant</h1>
+  <div class="subtitulo">Base de microservicios en .NET 8 con EF Core y PostgreSQL</div>
+
+  <p>Este documento explica qué se construyó, por qué se tomó cada decisión y —sobre
+  todo— <b>qué no está verificado todavía</b>. Está escrito para repartirse entre las
+  tres personas que van a trabajar sobre esta base.</p>
+
+  <div class="meta">
+    <div>
+      <div class="cifra">5 / 10</div>
+      <div class="pie">servicios completos</div>
+    </div>
+    <div>
+      <div class="cifra">142</div>
+      <div class="pie">tests en verde</div>
+    </div>
+    <div>
+      <div class="cifra">0</div>
+      <div class="pie">avisos y errores</div>
+    </div>
+  </div>
+
+  <h3>Qué leer según tu rol</h3>
+  <div class="lectores">
+    <div class="lector">
+      <div><b>Backend</b></div>
+      <div>Secciones 2, 3 y 4. Cómo está partido el código, por qué hay un núcleo
+      compartido, cómo se emiten eventos sin perderlos y cómo se llama a otro
+      servicio sin arrastrarlo en la caída.</div>
+    </div>
+    <div class="lector">
+      <div><b>Base de datos</b></div>
+      <div>Secciones 5 y 6. Una base por servicio, tipos elegidos, índices,
+      migraciones y el bloqueo pesimista que evita vender dos veces lo mismo.</div>
+    </div>
+    <div class="lector">
+      <div><b>Ciberseguridad</b></div>
+      <div>Secciones 7 y 8, y muy especialmente la 9. Ahí está el aislamiento entre
+      clientes, el tratamiento de credenciales y la lista de lo que aún <i>no</i>
+      se ha podido probar.</div>
+    </div>
+  </div>
+
+  <div class="aviso">
+    <div class="titulo">Antes de fiarse de nada de esto</div>
+    <p style="margin:0">Nada se ha ejecutado nunca contra un PostgreSQL real. El código
+    compila y los tests de lógica pasan, pero <b>las migraciones no se han aplicado y las
+    políticas de aislamiento no se han probado</b>. La sección 9 lo detalla. Es lo
+    primero que hay que cerrar.</p>
+  </div>
+</section>
+
+
+<!-- ══════════════ 1 ══════════════ -->
+<h2>1. Qué hay construido, y qué no</h2>
+
+<p>El objetivo era levantar diez microservicios siguiendo la especificación de
+<code>prompts-efcore-microservicios.md</code> y la arquitectura de
+<code>ExplicacionTec.md</code>. Están terminados cinco.</p>
+
+<table>
+  <tr><th>Servicio</th><th>Estado</th><th>Tests</th><th>Qué hace</th></tr>
+  <tr><td><code>tenant-service</code></td><td><span class="si">Completo</span></td><td>22</td><td>Alta, suspensión y resolución de negocios por subdominio</td></tr>
+  <tr><td><code>identity-service</code></td><td><span class="si">Completo</span></td><td>16</td><td>Registro, login, tokens, roles y permisos</td></tr>
+  <tr><td><code>catalog-service</code></td><td><span class="si">Completo</span></td><td>57</td><td>Productos, precios con histórico y búsqueda</td></tr>
+  <tr><td><code>order-service</code></td><td><span class="si">Completo</span></td><td>22</td><td>Órdenes validadas contra el catálogo</td></tr>
+  <tr><td><code>reservations-service</code></td><td><span class="si">Completo</span></td><td>25</td><td>Franjas horarias y reservas sin sobreventa</td></tr>
+  <tr><td><code>billing-service</code></td><td><span class="no">Pendiente</span></td><td>—</td><td>Facturación y pasarelas de pago</td></tr>
+  <tr><td><code>inventory-service</code></td><td><span class="no">Pendiente</span></td><td>—</td><td>Stock con reserva y confirmación</td></tr>
+  <tr><td><code>notification-service</code></td><td><span class="no">Pendiente</span></td><td>—</td><td>Correo y SMS por plantillas</td></tr>
+  <tr><td><code>checkout-service</code></td><td><span class="no">Pendiente</span></td><td>—</td><td>Carrito y paso a orden</td></tr>
+  <tr><td><code>landing-builder-service</code></td><td><span class="no">Pendiente</span></td><td>—</td><td>Páginas públicas por bloques</td></tr>
+</table>
+
+<p>Los cinco pendientes <b>no están a medias en la rama principal</b>, y es a
+propósito: sin punto de entrada no compilan, y una rama donde <code>dotnet build</code>
+falla no le sirve a nadie. El modelado de dominio que se alcanzó a escribir está
+aislado en la rama <code>wip/servicios-pendientes</code>, y <code>docs/pendiente.md</code>
+tiene el guion de cada uno con las trampas ya identificadas.</p>
+
+<h3>Dónde está</h3>
+<p>Repositorio <code>Hexor-Labs/ReadMeOffProyect</code>, rama
+<code>feature/efcore-microservicios</code>, pull request #1. La rama <code>main</code>
+está intacta.</p>
+
+
+<!-- ══════════════ 2 ══════════════ -->
+<h2>2. Cómo está organizado el código</h2>
+
+<p>Monorepo, no diez repositorios. Es lo que recomienda <code>ExplicacionTec.md</code>
+para un equipo de tres personas: un solo sitio donde buscar, un solo CI que configurar
+bien, y los cambios que cruzan servicios caben en un commit.</p>
+
+<pre><code>hub-negocios/
+├── packages/SharedKernel/     infraestructura común a los 10 servicios
+├── services/                  un microservicio por carpeta
+├── tests/                     un proyecto de pruebas por servicio
+├── docker/                    arranque de Postgres (bases y roles)
+├── docs/                      arquitectura, diagramas y pendientes
+└── docker-compose.yml         entorno local completo</code></pre>
+
+<p>Cada servicio sigue arquitectura hexagonal en tres capas:</p>
+
+<table>
+  <tr><th>Capa</th><th>Qué contiene</th><th>De qué depende</th></tr>
+  <tr><td><code>Domain/</code></td><td>Entidades, objetos de valor y puertos (interfaces)</td><td><b>De nada.</b> Ni EF Core ni ASP.NET</td></tr>
+  <tr><td><code>Application/</code></td><td>Casos de uso</td><td>Solo del dominio</td></tr>
+  <tr><td><code>Infrastructure/</code></td><td>EF Core, controladores, clientes HTTP</td><td>De todo lo anterior</td></tr>
+</table>
+
+<p>Que el dominio no dependa de nada tiene una consecuencia muy concreta y muy
+práctica: <b>los tests de lógica de negocio corren sin base de datos y sin Docker</b>,
+en milisegundos. Por eso los dobles de prueba están escritos a mano en vez de con una
+librería de simulación: si hiciera falta simular un <code>DbContext</code> para probar
+una regla de negocio, querría decir que la regla se ensució con infraestructura.</p>
+
+<h3>Por qué hay un núcleo compartido</h3>
+
+<p>La propia especificación pedía comparar los <code>Program.cs</code> de varios
+servicios y desconfiar si divergían. Un paquete compartido convierte esa revisión
+manual en algo que <b>no puede fallar</b>: no divergen porque es literalmente el mismo
+código. El arranque de un servicio queda así:</p>
+
+<pre><code>builder.AddHubDefaults("order-service");      // logs, JWT, límites, health
+builder.AddHubPersistence&lt;OrderDbContext&gt;();  // EF, interceptores, outbox
+
+// ... solo lo propio de este servicio ...
+
+app.UseHubDefaults();                          // middleware en el orden correcto</code></pre>
+
+<div class="nota">
+  <div class="titulo">Regla para no romper esto</div>
+  <p style="margin:0">En el núcleo compartido vive <b>infraestructura transversal, nunca
+  lógica de negocio</b>. Un núcleo que empieza a saber de órdenes o de reservas es el
+  primer paso para volver a tener un monolito, solo que repartido en diez procesos y con
+  la latencia de red de propina.</p>
+</div>
+
+
+<!-- ══════════════ 3 ══════════════ -->
+<h2>3. Cómo se comunican los servicios</h2>
+
+<p>Dos caminos, y la elección entre uno y otro no es de estilo:</p>
+
+<table>
+  <tr><th>Camino</th><th>Cuándo</th><th>Ejemplo</th></tr>
+  <tr>
+    <td><b>Evento asíncrono</b><br><span style="color:var(--tenue)">vía outbox</span></td>
+    <td>Cuando algo <i>ya pasó</i> y otros deben enterarse</td>
+    <td><code>order.created</code> despierta a reservas, stock y notificaciones</td>
+  </tr>
+  <tr>
+    <td><b>HTTP síncrono</b><br><span style="color:var(--tenue)">con Polly</span></td>
+    <td>Cuando se necesita una respuesta <i>antes</i> de continuar</td>
+    <td>Órdenes pregunta al catálogo el precio real antes de crear la orden</td>
+  </tr>
+</table>
+
+<h3>El patrón Outbox, y por qué no es opcional</h3>
+
+<p>Un caso de uso tiene que hacer dos cosas: guardar el cambio y avisar al resto del
+sistema. No hay forma de hacer esas dos cosas atómicamente contra dos sistemas
+distintos. Si el proceso muere en medio, o se confirmó la venta y nadie se enteró, o se
+avisó de una venta que no existe.</p>
+
+<p>La solución es escribir el evento como <b>una fila más de la misma transacción</b>:</p>
+
+<figure>
+<svg width="470" height="150" viewBox="0 0 470 150" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif" font-size="9">
+  <rect x="2" y="8" width="215" height="72" rx="4" fill="#f0eefb" stroke="#5b3ad4" stroke-width="1.2"/>
+  <text x="12" y="24" font-size="8" fill="#5b3ad4" font-weight="600" letter-spacing="0.5">UNA SOLA TRANSACCIÓN</text>
+  <rect x="14" y="32" width="90" height="20" rx="3" fill="#fff" stroke="#c9c4e8"/>
+  <text x="24" y="46" fill="#16161d">INSERT orden</text>
+  <rect x="112" y="32" width="95" height="20" rx="3" fill="#fff" stroke="#c9c4e8"/>
+  <text x="120" y="46" fill="#16161d">INSERT evento</text>
+  <text x="14" y="70" fill="#5a5a6b" font-size="8">o pasan las dos, o no pasa ninguna</text>
+
+  <path d="M222 44 L252 44" stroke="#8b8b9c" stroke-width="1.2" marker-end="url(#f)"/>
+  <defs><marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 z" fill="#8b8b9c"/></marker></defs>
+
+  <rect x="258" y="8" width="208" height="72" rx="4" fill="#f6f6fa" stroke="#d8d8e0"/>
+  <text x="268" y="24" font-size="8" fill="#5a5a6b" font-weight="600" letter-spacing="0.5">PUBLICADOR, CADA 5 s</text>
+  <text x="268" y="42" fill="#16161d">1. lee pendientes con bloqueo</text>
+  <text x="268" y="56" fill="#16161d">2. publica en el bus</text>
+  <text x="268" y="70" fill="#16161d">3. marca como publicado</text>
+
+  <rect x="2" y="96" width="464" height="46" rx="4" fill="#fdf5f5" stroke="#b4232a" stroke-width="1.2"/>
+  <text x="12" y="112" font-size="8" fill="#b4232a" font-weight="600" letter-spacing="0.5">CONSECUENCIA QUE HAY QUE ASUMIR</text>
+  <text x="12" y="127" fill="#16161d">Si el proceso muere entre publicar y marcar, el evento se reenvía: la entrega es «al menos una vez».</text>
+  <text x="12" y="138" fill="#16161d">Todo consumidor DEBE ser idempotente. La alternativa sería perder eventos, que es peor.</text>
+</svg>
+<figcaption>Flujo del patrón Outbox y su contrapartida</figcaption>
+</figure>
+
+<p>El publicador usa <code>SELECT ... FOR UPDATE SKIP LOCKED</code>, que es lo que
+permite que varias instancias del servicio publiquen a la vez sin pisarse: cada una se
+lleva las filas que bloquea y las demás pasan de largo en vez de esperar turno.</p>
+
+<p>Hoy el publicador escribe en el log en vez de en un bus real
+(<code>LoggingEventBusPublisher</code>). Es deliberado, para poder desarrollar sin
+levantar RabbitMQ. Conectarlo de verdad es escribir una implementación de
+<code>IEventBusPublisher</code> y cambiar una línea.</p>
+
+<h3>Llamadas síncronas: tres defensas, tres problemas distintos</h3>
+
+<p>Cuando órdenes llama al catálogo, esa llamada lleva tres protecciones que suelen
+confundirse entre sí:</p>
+
+<table>
+  <tr><th>Defensa</th><th>Valor</th><th>Qué problema resuelve</th></tr>
+  <tr><td>Tiempo máximo de espera</td><td>3 s</td><td>Que una petición nuestra no se quede colgada esperando a quien no va a contestar. Sin esto los hilos se acumulan y caemos <i>nosotros</i> por culpa de otro.</td></tr>
+  <tr><td>Reintentos con espera creciente</td><td>3 · 1s/2s/4s</td><td>El fallo pasajero: un despliegue en marcha, un pico de red. La espera crece porque reintentar de inmediato contra un servicio saturado es echar gasolina al fuego.</td></tr>
+  <tr><td>Cortacircuitos</td><td>5 fallos / 30 s</td><td>El fallo sostenido. Deja de intentarlo y responde al instante. Protege a los dos: al otro, que deja de recibir tráfico mientras se recupera, y a nosotros, que dejamos de gastar 3 s por petición en algo que ya sabemos que falla.</td></tr>
+</table>
+
+<div class="nota">
+  <div class="titulo">Por qué las tres juntas</div>
+  <p style="margin:0">Sin el cortacircuitos, <b>los reintentos empeoran una caída</b>:
+  multiplican por tres la carga justo cuando el otro servicio menos la aguanta. Es un
+  error muy común y muy caro.</p>
+</div>
+
+
+<!-- ══════════════ 4 ══════════════ -->
+<h2>4. Convenciones de código</h2>
+
+<table>
+  <tr><th>Regla</th><th>Motivo</th></tr>
+  <tr><td>Tablas en <code>snake_case</code>, mapeadas explícitamente</td><td>Convención de Postgres; evita tener que citar identificadores</td></tr>
+  <tr><td>Enums guardados como <b>texto</b>, no como número</td><td>Un <code>2</code> en una columna no dice nada a las tres de la mañana. Y reordenar el enum en C# reinterpretaría en silencio todas las filas ya guardadas</td></tr>
+  <tr><td>Dinero en <code>decimal</code> / <code>numeric(18,2)</code></td><td>En coma flotante binaria 0,1 no es 0,1: los céntimos dejan de cuadrar</td></tr>
+  <tr><td>Fechas siempre en UTC</td><td>Un sistema multi-tenant acaba sirviendo a varios husos</td></tr>
+  <tr><td>DTOs en los endpoints, nunca entidades de dominio</td><td>Si el endpoint aceptara la entidad, el cliente podría mandar <code>"status": "Paid"</code> en el JSON y el enlazador lo asignaría sin preguntar</td></tr>
+  <tr><td>Los avisos del compilador son errores</td><td>En diez servicios, un aviso que nadie mira se multiplica por diez y deja de verse</td></tr>
+  <tr><td>Versiones de paquetes centralizadas</td><td>Si cada servicio fija las suyas, dos acaban corriendo EF Core distintos y el mismo código se comporta distinto</td></tr>
+</table>
+
+<h3>Formato de error único</h3>
+<p>Todos los servicios devuelven la misma forma, para que el frontend no aprenda diez
+maneras de saber que algo falló:</p>
+
+<pre><code>{
+  "error": {
+    "code": "ORDER_ITEM_UNAVAILABLE",
+    "message": "Ya no están disponibles: Botella premium",
+    "details": {},
+    "trace_id": "0af7651916cd43dd8448eb211c80319c"
+  }
+}</code></pre>
+
+<p>El <code>code</code> es contrato estable y el <code>message</code> es para personas:
+mezclarlos obliga al frontend a comparar cadenas en español, que es lo que se rompe el
+día que alguien corrige una tilde. El <code>trace_id</code> viaja entre servicios en la
+cabecera <code>X-Correlation-Id</code> y se devuelve <b>siempre</b>, también en los
+errores: es el número que un cliente puede leernos por teléfono.</p>
+
+
+<!-- ══════════════ 5 ══════════════ -->
+<h2 class="seccion">5. Base de datos</h2>
+
+<h3>Una base por servicio</h3>
+
+<p>Diez bases sobre un mismo servidor físico, para ahorrar coste al principio sin
+renunciar al aislamiento lógico:</p>
+
+<pre><code>tenant_db   identity_db   catalog_db   order_db      billing_db
+reservations_db   inventory_db   checkout_db   landing_db   notification_db</code></pre>
+
+<div class="aviso">
+  <div class="titulo">Regla que no se puede romper</div>
+  <p style="margin:0"><b>Ningún servicio consulta la base de otro.</b> Si órdenes
+  necesita datos del catálogo, los pide por API o los recibe por evento. Un <code>JOIN</code>
+  entre bases de dos servicios no se puede deshacer después sin reescribir medio
+  sistema, porque para cuando duele ya hay veinte consultas que dependen de él.</p>
+</div>
+
+<p>Por eso cada línea de una orden guarda una <b>foto</b> del producto —nombre, precio,
+atributos— y no una referencia. Es duplicación a propósito: si mañana el negocio sube el
+precio, la factura de ayer tiene que seguir diciendo lo que el cliente pagó ayer. Leer
+el precio en vivo reescribiría el histórico de ventas, que además de incorrecto es
+ilegal en la mayoría de sitios.</p>
+
+<h3>Dos roles de Postgres, y esto es lo más importante de la sección</h3>
+
+<table>
+  <tr><th>Rol</th><th>Quién lo usa</th><th>Por qué</th></tr>
+  <tr><td><code>hub</code></td><td>Migraciones y publicador de outbox</td><td>Es dueño de las tablas. Necesita leer eventos de <i>todos</i> los clientes a la vez</td></tr>
+  <tr><td><code>hub_app</code></td><td>El servicio, al atender peticiones</td><td>No es dueño de nada, así que <b>el aislamiento por fila sí se le aplica</b></td></tr>
+</table>
+
+<div class="aviso">
+  <div class="titulo">Si esto se configura mal, el aislamiento no existe</div>
+  <p style="margin:0">En PostgreSQL, <b>el dueño de una tabla se salta las políticas de
+  Row-Level Security por defecto</b>. Si el servicio se conectara con el usuario dueño,
+  las políticas estarían escritas pero no se aplicarían nunca: parecería que hay
+  aislamiento y no lo habría, sin que nada lo avisara. Verificar qué usuario hay en la
+  cadena de conexión de producción es la comprobación número uno.</p>
+</div>
+
+<h3>Tipos elegidos y por qué</h3>
+
+<table>
+  <tr><th>Uso</th><th>Tipo</th><th>Motivo</th></tr>
+  <tr><td>Atributos libres, marca, contenido de bloques</td><td><code>jsonb</code></td><td>Nativo, no texto serializado: se puede consultar dentro del JSON desde SQL sin leer y deserializar la fila entera</td></tr>
+  <tr><td>Importes</td><td><code>numeric(18,2)</code></td><td>Exacto. Nunca <code>float</code></td></tr>
+  <tr><td>Estados</td><td><code>varchar(20)</code></td><td>Legible en consultas manuales</td></tr>
+  <tr><td>Etiquetas, listas de imágenes</td><td><code>text[]</code> + índice GIN</td><td>Array nativo de Postgres; el GIN hace que filtrar por etiqueta escale</td></tr>
+  <tr><td>Identificadores</td><td><code>uuid</code></td><td>Generables sin ir a la base, imprescindible en sistemas distribuidos</td></tr>
+</table>
+
+<h3>Índices que conviene conocer</h3>
+
+<ul>
+  <li><b>Parcial sobre la outbox</b> — solo indexa lo pendiente
+  (<code>WHERE published = false</code>). La tabla se llena de eventos ya publicados que
+  nunca se releen: indexarlos todos sería pagar por mantener un índice enorme del que
+  siempre se usa la misma esquina.</li>
+  <li><b>Únicos por tenant, no globales</b> — el número de orden, el slug, el correo del
+  usuario. Dos negocios pueden tener cada uno su <code>ORD-2026-000001</code>, y el mismo
+  correo puede ser cliente de dos negocios distintos.</li>
+  <li><b>Único con filtro</b> — el dominio propio del tenant es único <i>cuando existe</i>
+  (<code>WHERE custom_domain IS NOT NULL</code>). Sin el filtro, el segundo cliente sin
+  dominio chocaría con el primero.</li>
+</ul>
+
+<h3>Migraciones</h3>
+<p>Una migración inicial por servicio, generada con EF Core y editada a mano para añadir
+lo que EF no sabe expresar: las políticas de seguridad por fila y las restricciones
+<code>CHECK</code>. Cada servicio gestiona solo las suyas; ninguna migración toca la base
+de otro.</p>
+
+
+<!-- ══════════════ 6 ══════════════ -->
+<h2>6. Concurrencia: el problema de vender dos veces lo mismo</h2>
+
+<p>Es el punto más delicado del sistema y el que más caro sale si se hace mal. Dos
+clientes reservan la última mesa en el mismo instante:</p>
+
+<pre><code>Cliente A                          Cliente B
+─────────                          ─────────
+lee cupo → queda 1
+                                   lee cupo → queda 1
+escribe cupo = 0  ✓
+                                   escribe cupo = 0  ✓
+
+Resultado: dos reservas confirmadas para una sola mesa.</code></pre>
+
+<p>Un <code>if (cupo &gt; 0)</code> en el código <b>no lo evita</b>, por muy bien escrito
+que esté: entre leer y escribir cabe otra transacción. La solución está en la base de
+datos, no en la aplicación:</p>
+
+<pre><code>SELECT * FROM time_slots
+WHERE id = $1 AND tenant_id = $2
+FOR UPDATE                          -- ← bloquea la fila hasta el COMMIT</code></pre>
+
+<p>Con <code>FOR UPDATE</code>, B se queda esperando en la lectura hasta que A termina, y
+cuando por fin lee, ve el cupo ya en cero. Va en SQL a mano porque EF Core no tiene forma
+de expresar un bloqueo de fila, y los valores van <b>siempre como parámetros</b>, nunca
+concatenados.</p>
+
+<div class="nota">
+  <div class="titulo">Defensa en profundidad</div>
+  <p style="margin:0">Además del bloqueo hay una restricción <code>CHECK</code> que
+  impide que el cupo baje de cero por ningún camino. El bloqueo es la defensa; el
+  <code>CHECK</code> es la red por si algún día alguien escribe por otra vía.</p>
+</div>
+
+<p>El mismo patrón hará falta en <code>inventory-service</code> cuando se implemente.
+Está documentado en <code>docs/pendiente.md</code>.</p>
+
+
+<!-- ══════════════ 7 ══════════════ -->
+<h2 class="seccion">7. Aislamiento entre clientes</h2>
+
+<p>Es la propiedad de seguridad más importante de un SaaS multi-tenant: que el negocio A
+no pueda ver jamás datos del negocio B. No se confía a una sola medida.</p>
+
+<figure>
+<svg width="470" height="196" viewBox="0 0 470 196" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif" font-size="9">
+  <rect x="2" y="4" width="466" height="44" rx="4" fill="#f6f6fa" stroke="#d8d8e0"/>
+  <text x="14" y="20" font-weight="600" fill="#16161d">1 · Filtro global de EF Core</text>
+  <text x="14" y="34" fill="#5a5a6b">Toda consulta LINQ lleva el filtro de cliente puesto sin que nadie lo escriba.</text>
+  <text x="14" y="44" fill="#b4232a" font-size="8">Se escapa por: IgnoreQueryFilters(), SQL crudo</text>
+
+  <rect x="2" y="54" width="466" height="44" rx="4" fill="#f6f6fa" stroke="#d8d8e0"/>
+  <text x="14" y="70" font-weight="600" fill="#16161d">2 · Interceptor de escritura</text>
+  <text x="14" y="84" fill="#5a5a6b">Impide guardar una fila en el cliente equivocado, con un error legible.</text>
+  <text x="14" y="94" fill="#b4232a" font-size="8">Se escapa por: no cubre lecturas</text>
+
+  <rect x="2" y="104" width="466" height="48" rx="4" fill="#f0eefb" stroke="#5b3ad4" stroke-width="1.2"/>
+  <text x="14" y="120" font-weight="600" fill="#16161d">3 · Row-Level Security de PostgreSQL</text>
+  <text x="14" y="134" fill="#5a5a6b">Filtra dentro del motor. Es lo único que sigue en pie ante SQL a mano.</text>
+  <text x="14" y="146" fill="#b4232a" font-size="8">Se escapa por: si la aplicación se conecta como DUEÑA de la tabla</text>
+
+  <rect x="2" y="160" width="466" height="32" rx="4" fill="#fff" stroke="#d8d8e0" stroke-dasharray="3 2"/>
+  <text x="14" y="176" fill="#16161d" font-size="8.5">El identificador del cliente entra al sistema UNA sola vez, en el borde, leído del token ya validado,</text>
+  <text x="14" y="187" fill="#16161d" font-size="8.5">y de ahí en adelante viaja solo en el contexto de ejecución. Nunca es un parámetro que haya que recordar.</text>
+</svg>
+<figcaption>Tres capas, porque cada una deja pasar lo que tapan las otras</figcaption>
+</figure>
+
+<h3>Tres fallos sutiles que se evitaron</h3>
+
+<p>Los tres están comentados en el código, porque son el tipo de cosa que alguien
+«simplifica» sin saber lo que está quitando.</p>
+
+<h4>El filtro no puede apuntar al contexto de base de datos</h4>
+<p>El patrón que sale en casi todos los tutoriales guarda el cliente en un campo del
+contexto y compara contra él. El problema es que EF Core <b>cachea el modelo por tipo de
+contexto</b>: la segunda petición reutiliza un modelo que sigue apuntando al contexto de
+la primera, y acaba filtrando por el cliente equivocado. Aquí se compara contra un valor
+estático, sin capturar instancia alguna.</p>
+
+<h4>Hay que limpiar el identificador al soltar la conexión</h4>
+<p>Las conexiones salen de un pool y se reutilizan. Si al no haber cliente no se limpiara
+el valor, <b>una petición anónima heredaría el cliente de la anterior</b> que usó esa
+misma conexión física. La política está escrita para que, sin valor, no devuelva ninguna
+fila: el estado por defecto es negar, no mostrar todo.</p>
+
+<h4>La outbox queda deliberadamente fuera del filtro</h4>
+<p>La lee un proceso de fondo que publica eventos de todos los clientes y que, por
+definición, corre sin cliente en contexto. Con filtro no vería una sola fila y ningún
+evento saldría nunca. Es una excepción consciente y está documentada donde toca.</p>
+
+
+<!-- ══════════════ 8 ══════════════ -->
+<h2>8. Credenciales y superficie expuesta</h2>
+
+<h3>Contraseñas</h3>
+<p>BCrypt con factor de coste 12. El factor no es decorativo: cada unidad <b>duplica</b>
+el trabajo. Doce deja cada comprobación en unos cientos de milisegundos —imperceptible al
+entrar, carísimo para quien pruebe millones de contraseñas contra una tabla robada—.
+Subirlo cuando las máquinas mejoren es lo que mantiene esto cierto dentro de cinco años.</p>
+
+<div class="nota">
+  <div class="titulo">Ataque por tiempo, y cómo se cerró</div>
+  <p>El login devuelve el mismo error tanto si el correo no existe como si la contraseña
+  es incorrecta. Eso es lo habitual y <b>no basta</b>: si cuando el correo no existe la
+  respuesta llega en un milisegundo y cuando sí existe tarda doscientos, cualquiera puede
+  averiguar qué direcciones están dadas de alta cronometrando las respuestas. El mensaje
+  es idéntico, pero el reloj lo cuenta todo.</p>
+  <p style="margin:0">Cuando el usuario no existe se comprueba igualmente contra un hash
+  de descarte con el mismo factor de coste, para gastar el mismo tiempo. <b>Hay un test
+  que lo mide</b> y falla si alguien elimina esa rama por parecerle código muerto.</p>
+</div>
+
+<h3>Tokens</h3>
+<table>
+  <tr><th></th><th>Token de acceso</th><th>Token de renovación</th></tr>
+  <tr><td>Duración</td><td>15 minutos</td><td>14 días</td></tr>
+  <tr><td>Dónde va</td><td>Cuerpo de la respuesta</td><td>Cookie <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Strict</code></td></tr>
+  <tr><td>Qué se guarda</td><td>Nada</td><td><b>Solo el hash</b>, nunca el token</td></tr>
+  <tr><td>¿Revocable?</td><td>No, hasta que caduca</td><td>Sí. Se rota en cada uso</td></tr>
+</table>
+
+<p>El token de acceso lleva firmados el usuario, <b>el cliente</b> y el rol, y los demás
+servicios lo validan sin preguntarle a nadie. Eso es lo que permite escalar sin que
+identidad sea el cuello de botella, y es también la razón de que no se pueda revocar
+antes de tiempo: quince minutos es el equilibrio entre no molestar al usuario y que un
+token robado sirva de poco.</p>
+
+<p>Del token de renovación solo se guarda el hash. Si se filtrara la tabla —una copia de
+seguridad mal guardada, un volcado para depurar— lo robado no serviría para entrar. Y
+al viajar en cookie <code>HttpOnly</code>, JavaScript no puede leerlo: es la diferencia
+práctica entre que un XSS robe la sesión y que no pueda.</p>
+
+<h3>Superficie expuesta sin autenticación</h3>
+<p>Por defecto <b>todo endpoint exige autenticación</b>. Lo público se marca uno por uno,
+que es un olvido visible; al revés el olvido es invisible y deja una puerta abierta. Hoy
+son anónimos:</p>
+
+<table>
+  <tr><th>Endpoint</th><th>Por qué</th><th>Qué lo protege</th></tr>
+  <tr><td><code>/health</code>, <code>/ready</code></td><td>El orquestador los consulta sin credenciales</td><td>No exponen datos</td></tr>
+  <tr><td>Resolver negocio por subdominio</td><td>El gateway lo llama antes de que exista sesión</td><td>Devuelve solo datos ya públicos. Un negocio eliminado responde igual que uno inexistente, para no convertirlo en un listado de quién estuvo y se fue</td></tr>
+  <tr><td>Registro y login</td><td>Quien entra aún no tiene token</td><td>Límite de peticiones y bloqueo tras 5 intentos</td></tr>
+</table>
+
+<h3>Otras medidas ya puestas</h3>
+<ul>
+  <li><b>Límite de peticiones</b> repartido por cliente cuando lo hay y por IP cuando no.
+  Contar solo por IP castigaría a todo un negocio detrás de una misma oficina; contar solo
+  por cliente dejaría sin freno el tráfico anónimo, que es justo el que conviene frenar.</li>
+  <li><b>Bloqueo temporal</b> tras cinco intentos fallidos, quince minutos. Temporal y no
+  permanente a propósito: un bloqueo que solo levanta un administrador convierte un ataque
+  contra una cuenta en una forma fácil de dejar a alguien fuera para siempre.</li>
+  <li><b>Los errores inesperados no salen al cliente.</b> Un error de Postgres sin filtrar
+  cuenta nombres de tablas y columnas, y a veces datos. Fuera va un código genérico y el
+  identificador de traza; la traza completa va al log.</li>
+  <li><b>Sin secretos en el repositorio.</b> <code>.env</code> está ignorado desde el primer
+  commit, y el servicio <b>no arranca</b> si falta la clave de firma: preferimos no arrancar
+  a arrancar aceptando cualquier token.</li>
+  <li><b>Consentimiento con fecha</b> (Ley 1581 de Habeas Data). Sin fecha, el
+  consentimiento no se puede acreditar.</li>
+  <li><b>Contenedores con usuario sin privilegios</b>, nunca root.</li>
+</ul>
+
+
+<!-- ══════════════ 9 ══════════════ -->
+<h2 class="seccion">9. Lo que NO está verificado</h2>
+
+<p>Esta sección es la más importante del documento. Todo lo anterior describe lo que el
+código <i>dice</i> que hace; aquí está lo que todavía nadie ha comprobado que haga.</p>
+
+<div class="aviso">
+  <div class="titulo">Nada se ha ejecutado contra un PostgreSQL real</div>
+  <p style="margin:0">En la máquina donde se escribió esto no había Docker. Las
+  migraciones se generan y compilan, pero <b>no se han aplicado nunca a una base de
+  datos</b>. Es perfectamente posible que alguna falle al ejecutarse.</p>
+</div>
+
+<table>
+  <tr><th>Qué</th><th>Estado</th><th>Cómo cerrarlo</th></tr>
+  <tr>
+    <td>Las migraciones se aplican sin error</td>
+    <td><span class="no">Sin probar</span></td>
+    <td><code>docker compose up -d</code> y <code>dotnet ef database update</code> por servicio</td>
+  </tr>
+  <tr>
+    <td>Las políticas de aislamiento funcionan</td>
+    <td><span class="no">Sin probar</span></td>
+    <td>Test con dos clientes: escribir datos con uno e intentar leerlos con el otro. <b>Es el primer test que hay que escribir.</b></td>
+  </tr>
+  <tr>
+    <td>El bloqueo evita la doble reserva</td>
+    <td><span class="no">Sin probar</span></td>
+    <td>Ya hay un test de concurrencia escrito con Testcontainers, marcado para saltarse. Basta con Docker para ejecutarlo</td>
+  </tr>
+  <tr>
+    <td>La aplicación se conecta como rol no dueño</td>
+    <td><span class="parcial">Configurado</span></td>
+    <td>Está en <code>docker-compose.yml</code>, pero hay que verificarlo en el entorno real</td>
+  </tr>
+  <tr>
+    <td>Los eventos llegan a un bus</td>
+    <td><span class="no">No implementado</span></td>
+    <td>Hoy se escriben en el log. Falta el adaptador de RabbitMQ</td>
+  </tr>
+  <tr>
+    <td>Lógica de negocio de los 5 servicios hechos</td>
+    <td><span class="si">142 tests</span></td>
+    <td>Verificado. No necesita base de datos</td>
+  </tr>
+</table>
+
+<h3>Riesgos abiertos, ordenados por gravedad</h3>
+<ol>
+  <li><b>Que la aplicación acabe conectándose como dueña de las tablas en producción.</b>
+  Anularía el aislamiento por fila sin que nada lo avisara, y la aplicación funcionaría
+  con normalidad. Es el fallo más grave posible en este diseño y el más silencioso.</li>
+  <li><b>Que una política de aislamiento esté mal escrita.</b> Hasta que no se pruebe
+  contra Postgres con dos clientes, no hay garantía de que filtre.</li>
+  <li><b>Que un consumidor de eventos no sea idempotente.</b> La entrega es «al menos una
+  vez»: descontaría stock dos veces o mandaría dos correos.</li>
+  <li><b>Falta rotación de secretos.</b> La política de 90 días está documentada pero no
+  implementada.</li>
+</ol>
+
+
+<!-- ══════════════ 10 ══════════════ -->
+<h2>10. Cómo seguir</h2>
+
+<h3>Antes de escribir una línea más</h3>
+<ol>
+  <li>Levantar la infraestructura y aplicar las migraciones. Arreglar lo que falle.</li>
+  <li><b>Escribir el test de aislamiento entre clientes.</b> Dos clientes, datos cruzados,
+  y comprobar que ninguno ve los del otro ni con SQL a mano.</li>
+  <li>Ejecutar el test de concurrencia de reservas, que ya está escrito.</li>
+  <li>Revisar con qué usuario se conecta cada servicio en cada entorno.</li>
+</ol>
+
+<h3>Después</h3>
+<ol start="5">
+  <li>Implementar los cinco servicios que faltan siguiendo <code>docs/pendiente.md</code>,
+  que ya recoge las trampas de cada uno.</li>
+  <li>Escribir el adaptador real del bus de eventos.</li>
+  <li>Montar el CI: compilación y tests obligatorios antes de fusionar.</li>
+  <li>Proteger la rama principal: sin empuje directo, con revisión.</li>
+</ol>
+
+<h3>Arranque local</h3>
+<pre><code>cp .env.example .env          # rellenar los valores
+docker compose up -d          # Postgres (10 bases) + RabbitMQ
+
+dotnet build HubNegocios.sln  # 0 errores, 0 avisos
+dotnet test  HubNegocios.sln  # 142 tests</code></pre>
+
+<h3>Dónde está cada cosa</h3>
+<table>
+  <tr><th>Documento</th><th>Contenido</th></tr>
+  <tr><td><code>README.md</code></td><td>Arranque, convenciones y estado</td></tr>
+  <tr><td><code>docs/arquitectura.md</code></td><td>Diagramas y decisiones de fondo</td></tr>
+  <tr><td><code>docs/pendiente.md</code></td><td>Guion de los cinco servicios que faltan</td></tr>
+  <tr><td><code>ExplicacionTec.md</code></td><td>Especificación original del proyecto</td></tr>
+  <tr><td>README por servicio</td><td>Variables de entorno, endpoints, eventos y runbook</td></tr>
+</table>
+
+<p style="margin-top:20pt;padding-top:8pt;border-top:1px solid var(--linea);font-size:8.5pt;color:var(--tenue)">
+Repositorio <code>Hexor-Labs/ReadMeOffProyect</code> · rama <code>feature/efcore-microservicios</code> · pull request #1
+</p>
+
+</body>
+</html>
