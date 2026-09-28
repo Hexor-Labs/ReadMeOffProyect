@@ -7,6 +7,46 @@ La especificación funcional está en [`ExplicacionTec.md`](ExplicacionTec.md).
 Las decisiones de arquitectura y los diagramas, en
 [`docs/arquitectura.md`](docs/arquitectura.md).
 
+## Estado
+
+Cinco de los diez servicios están completos y verificados. Los otros cinco
+están especificados pero **no implementados**: no los inventes a medias, hay
+briefs listos en [`docs/pendiente.md`](docs/pendiente.md).
+
+| Servicio | Estado | Tests |
+|---|---|---|
+| `tenant-service` | completo | 22 |
+| `identity-service` | completo | 16 |
+| `catalog-service` | completo | 57 |
+| `order-service` | completo | 22 |
+| `reservations-service` | completo | 25 |
+| `billing-service` | pendiente | — |
+| `inventory-service` | pendiente | — |
+| `notification-service` | pendiente | — |
+| `checkout-service` | pendiente | — |
+| `landing-builder-service` | pendiente | — |
+
+**142 tests, 0 avisos, 0 errores** en `dotnet build` y `dotnet test` sobre la
+solución completa.
+
+Lo que **no** está verificado y conviene saber antes de fiarse:
+
+- **Nada se ha ejecutado contra un Postgres real.** Las migraciones se generan y
+  compilan, pero no se han aplicado a una base de datos: no hay Docker en la
+  máquina donde se escribió esto. Lo primero que hay que hacer es
+  `docker compose up -d` y `dotnet ef database update` por servicio.
+- **Las políticas RLS no se han probado.** Están escritas en las migraciones,
+  pero que un tenant no pueda leer datos de otro solo se puede demostrar contra
+  Postgres. Ese test es el primero que hay que escribir cuando haya Docker.
+- **El bloqueo pesimista de reservations-service tampoco.** El
+  `SELECT … FOR UPDATE` está implementado y razonado, y hay un test de
+  concurrencia escrito con Testcontainers, pero marcado para saltarse sin
+  Docker.
+- **El publicador de outbox escribe en un log, no en un bus.** Es deliberado
+  —`LoggingEventBusPublisher`— para poder desarrollar sin broker. Conectar
+  RabbitMQ es escribir una implementación de `IEventBusPublisher` y cambiar una
+  línea del `Program.cs`.
+
 ## Estructura
 
 ```
